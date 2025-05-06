@@ -6,7 +6,7 @@ public class ThreadState {
             () -> System.out.println(Thread.currentThread().getName())
         );
         Thread second = new Thread(
-                () -> System.out.println(Thread.currentThread().getName())
+            () -> System.out.println(Thread.currentThread().getName())
         );
         first.start();
         first.join();
