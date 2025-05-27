@@ -19,8 +19,6 @@ public final class GetFileContent {
             StringBuilder builder = new StringBuilder();
             input.lines().forEach(data -> builder.append(data));
             return builder.toString();
-        } catch (IOException e) {
-            throw e;
         }
     }
 
@@ -34,8 +32,6 @@ public final class GetFileContent {
                 }
             }
             return output;
-        } catch (IOException e) {
-            throw e;
-        }
+        } 
     }
 }

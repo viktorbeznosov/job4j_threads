@@ -18,8 +18,6 @@ public final class SaveFileContent {
             for (int i = 0; i < content.length(); i++) {
                 o.write(content.charAt(i));
             }
-        } catch (IOException e) {
-            throw e;
         }
     }
 }
