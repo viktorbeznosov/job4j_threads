@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 public class Cache {
@@ -19,7 +20,9 @@ public class Cache {
             throw new OptimisticException("Versions are not equal");
         }
         if (!this.findById(model.getId()).isEmpty()) {
-            memory.put(model.getId(), new Base(model.getId(), model.getName(), model.getVersion() + 1));
+            memory.computeIfPresent(model.getId(), (key, value) -> {
+                return new Base(model.getId(), model.getName(), model.getVersion() + 1);
+            });
             return true;
         }
         return false;
