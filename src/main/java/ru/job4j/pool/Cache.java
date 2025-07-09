@@ -2,7 +2,9 @@ package ru.job4j.pool;
 
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class Cache<T> {
     private ExecutorService pool;
@@ -14,7 +16,8 @@ public class Cache<T> {
                 Runtime.getRuntime().availableProcessors(),
                 Runtime.getRuntime().availableProcessors(),
                 minutes,
-                TimeUnit.MINUTES
+                TimeUnit.MINUTES,
+                new LinkedBlockingQueue<>()
         );
     }
 
