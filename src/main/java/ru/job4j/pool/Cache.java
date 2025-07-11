@@ -1,36 +1,44 @@
 package ru.job4j.pool;
 
 import java.util.HashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.Map;
+import java.util.concurrent.*;
 import java.util.concurrent.TimeUnit;
 
 public class Cache<T> {
-    private ExecutorService pool;
+    private ExecutorService pool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
-    private HashMap<String, T> map = new HashMap<>();
+    private Map<String, T> map = new ConcurrentHashMap<>();
 
-    public Cache(long minutes) {
-        this.pool = new ThreadPoolExecutor(
-                Runtime.getRuntime().availableProcessors(),
-                Runtime.getRuntime().availableProcessors(),
-                minutes,
-                TimeUnit.MINUTES,
-                new LinkedBlockingQueue<>()
+    public void put(String key, T value, int timeToLive) {
+        pool.submit(
+            () -> {
+                map.put(key, value);
+                try {
+                    TimeUnit.MILLISECONDS.sleep(timeToLive);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                map.remove(key);
+            }
         );
     }
 
-    public void put(String key, T value) {
-        pool.submit(() -> {
-            map.put(key, value);
-        });
+    public T get(String key) {
+        return map.get(key);
     }
 
-    public T get(String key) {
-        if (!pool.isTerminated()) {
-            return map.get(key);
-        }
-        return null;
+    public void clear() {
+        pool.shutdown();
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        Cache<String> cache = new Cache<>();
+        cache.put("first", "TTL = 5 seconds", 5000);
+        TimeUnit.MILLISECONDS.sleep(3000);
+        System.out.println(cache.get("first"));
+        TimeUnit.MILLISECONDS.sleep(7000);
+        System.out.println(cache.get("first"));
+        cache.clear();
     }
 }
