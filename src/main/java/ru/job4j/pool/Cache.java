@@ -1,17 +1,14 @@
 package ru.job4j.pool;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.TimeUnit;
 
 public class Cache<T> {
-    private ExecutorService pool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-
     private Map<String, T> map = new ConcurrentHashMap<>();
 
-    public void put(String key, T value, int timeToLive) {
-        pool.submit(
+    CompletableFuture<Void> putInTempCache(String key, T value, int timeToLive) {
+        return CompletableFuture.runAsync(
             () -> {
                 map.put(key, value);
                 try {
@@ -24,12 +21,12 @@ public class Cache<T> {
         );
     }
 
-    public T get(String key) {
-        return map.get(key);
+    public void put(String key, T value, int timeToLive) {
+        putInTempCache(key, value, timeToLive);
     }
 
-    public void clear() {
-        pool.shutdown();
+    public T get(String key) {
+        return map.get(key);
     }
 
     public static void main(String[] args) throws InterruptedException {
@@ -39,6 +36,5 @@ public class Cache<T> {
         System.out.println(cache.get("first"));
         TimeUnit.MILLISECONDS.sleep(7000);
         System.out.println(cache.get("first"));
-        cache.clear();
     }
 }
