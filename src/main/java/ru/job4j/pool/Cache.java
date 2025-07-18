@@ -7,10 +7,14 @@ import java.util.concurrent.TimeUnit;
 public class Cache<T> {
     private Map<String, T> map = new ConcurrentHashMap<>();
 
-    CompletableFuture<Void> putInTempCache(String key, T value, int timeToLive) {
-        return CompletableFuture.runAsync(
+    public void put(String key, T value, int timeToLive) {
+        map.put(key, value);
+        removeValueFromTimeToLive(key, timeToLive);
+    }
+
+    private void removeValueFromTimeToLive(String key, int timeToLive) {
+        Executors.newFixedThreadPool(1).submit(
             () -> {
-                map.put(key, value);
                 try {
                     TimeUnit.MILLISECONDS.sleep(timeToLive);
                 } catch (InterruptedException e) {
@@ -21,20 +25,29 @@ public class Cache<T> {
         );
     }
 
-    public void put(String key, T value, int timeToLive) {
-        putInTempCache(key, value, timeToLive);
-    }
-
     public T get(String key) {
         return map.get(key);
     }
 
     public static void main(String[] args) throws InterruptedException {
         Cache<String> cache = new Cache<>();
-        cache.put("first", "TTL = 5 seconds", 5000);
+        cache.put("1", "TTL = 10 seconds", 10000);
+        cache.put("2", "TTL = 15 seconds", 15000);
+        cache.put("3", "TTL = 10 seconds", 10000);
+        cache.put("4", "TTL = 10 seconds", 10000);
+        cache.put("5", "TTL = 10 seconds", 10000);
+        cache.put("6", "TTL = 20 seconds", 20000);
         TimeUnit.MILLISECONDS.sleep(3000);
-        System.out.println(cache.get("first"));
-        TimeUnit.MILLISECONDS.sleep(7000);
-        System.out.println(cache.get("first"));
+        System.out.println(cache.get("1"));
+        System.out.println(cache.get("2"));
+        System.out.println(cache.get("6"));
+        TimeUnit.MILLISECONDS.sleep(8000);
+        System.out.println(cache.get("1"));
+        System.out.println(cache.get("2"));
+        System.out.println(cache.get("6"));
+        TimeUnit.MILLISECONDS.sleep(10000);
+        System.out.println(cache.get("1"));
+        System.out.println(cache.get("2"));
+        System.out.println(cache.get("6"));
     }
 }
